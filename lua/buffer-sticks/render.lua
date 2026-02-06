@@ -64,6 +64,48 @@ function M.apply_fuzzy_filter(buffers, display_paths)
 	return filtered_indices
 end
 
+---Sort buffers based on configured sort option
+---@param buffers table[] List of buffers to sort
+---@param display_paths table<integer, string> Map of buffer.id to display path
+---@return table[] sorted_buffers Sorted buffers
+local function sort_buffers(buffers, display_paths)
+	local sort_config = config.list and config.list.sort or nil
+	if not sort_config then
+		return buffers
+	end
+
+	local sort_field = sort_config.field or "filename"
+	local ascending = sort_config.ascending ~= false -- 默认升序
+
+	-- Create a copy to avoid modifying the original buffers
+	local sorted_buffers = vim.deepcopy(buffers)
+
+	table.sort(sorted_buffers, function(a, b)
+		local a_value, b_value
+		if sort_field == "id" then
+			a_value = a.id
+			b_value = b.id
+		elseif sort_field == "filename" then
+			a_value = display_paths[a.id] or vim.fn.fnamemodify(a.name, ":t")
+			b_value = display_paths[b.id] or vim.fn.fnamemodify(b.name, ":t")
+		elseif sort_field == "label" then
+			a_value = a.label or ""
+			b_value = b.label or ""
+		else
+			--- If the field is not supported, keep the original order
+			return false
+		end
+
+		if ascending then
+			return a_value < b_value
+		else
+			return a_value > b_value
+		end
+	end)
+
+	return sorted_buffers
+end
+
 ---Get the stick character for a buffer
 ---@param buffer table Buffer info
 ---@return string char The stick character
@@ -123,6 +165,9 @@ function M.render()
 			table.insert(filtered_indices, i)
 		end
 	end
+
+	-- 在应用过滤后进行排序
+	filtered_buffers = sort_buffers(filtered_buffers, display_paths)
 
 	local has_two_char = buffers_mod.has_two_char_label(filtered_buffers)
 
@@ -243,7 +288,13 @@ function M.render()
 					hl_group = "BufferSticksListSelected"
 				end
 				local stick_width = vim.fn.strwidth(stick_char)
-				vim.hl.range(state.buf, ns_id, hl_group, { line_idx, col_offset }, { line_idx, col_offset + stick_width })
+				vim.hl.range(
+					state.buf,
+					ns_id,
+					hl_group,
+					{ line_idx, col_offset },
+					{ line_idx, col_offset + stick_width }
+				)
 				col_offset = col_offset + stick_width
 			end
 

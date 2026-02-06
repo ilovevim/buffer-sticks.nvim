@@ -103,6 +103,10 @@ local M = {
 	label = { show = "list" },
 	list = {
 		show = { "filename", "space", "label" },
+		sort = {
+			field = "id", -- Sort by "id", "filename" or "label"
+			ascending = true, -- Sort order (true for ascending, false for descending)
+		},
 		active_indicator = "•",
 		keys = {
 			close_buffer = "<C-q>",
