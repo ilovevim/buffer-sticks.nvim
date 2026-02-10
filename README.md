@@ -125,10 +125,16 @@ require("buffer-sticks").setup({
   auto_hide = true,                -- Auto-hide when cursor is over float (default: true)
   label = { show = "list" },       -- Label display: "always", "list", or "never"
   list = {
-    show = { "filename", "space", "label" }, -- List mode display options
+    show = { "filename", "label" }, -- List mode display options and order
+		separator = " ",              -- Separator between components in list mode
     sort = {
       field = "id",               -- Sort by "id", "filename" or "label"
       ascending = true,           -- Sort order (true for ascending, false for descending)
+    },
+    align = {
+      filename = "right",          -- Alignment for filename component
+      label = "right",             -- Alignment for label component
+      stick = "right",               -- Alignment for stick component
     },
     active_indicator = "•",       -- Symbol for selected item in list mode (arrow navigation)
     keys = {
